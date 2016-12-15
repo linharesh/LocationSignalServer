@@ -5,7 +5,9 @@ class ReadsController < ApplicationController
   # POST /reads.json
   def create
     puts("ReadsController # create")
-    puts(read_params)
+    @read = Read.new(read_params)
+    @read.save
+    puts("Leitura salva com sucesso")
   end
 
   private
@@ -13,7 +15,7 @@ class ReadsController < ApplicationController
     end
 
     def read_params
-      params.require(:read)
+      params.require(:read).permit(:latitude, :longitude, :signalStrength, :carrierName)
     end
 
 end
