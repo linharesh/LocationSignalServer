@@ -1,7 +1,3 @@
-class ApplicationController < ActionController::API
-    include ActionController::MimeResponds
-end
-
 class HandshakeController < ApplicationController
 
     # GET /handshake 
