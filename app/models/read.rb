@@ -1,3 +1,3 @@
 class Read < ApplicationRecord
-    validates_uniqueness_of :latitude, :scope => [:longitude, :carrierName]
+    belongs_to :layer, optional: true
 end

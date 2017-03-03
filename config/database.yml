@@ -1,7 +1,7 @@
 development:
   adapter: postgresql
   encoding: unicode
-  database: myapp_development
+  database: locationsignal_development
   pool: 5
   username: postgres
   password: 123456
@@ -9,7 +9,7 @@ development:
 test:
   adapter: postgresql
   encoding: unicode
-  database: myapp_test
+  database: locationsignal_test
   pool: 5
   username: postgres
   password: 123456
