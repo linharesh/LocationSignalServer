@@ -1,3 +1,3 @@
 class Layer < ApplicationRecord
-    has_many :Reads
+    has_many :reads
 end
