@@ -14,6 +14,12 @@ class ReadsController < ApplicationController
     end
   end
 
+  # GET /reads
+  def query
+    puts 'query'
+  end 
+
+
   private
 
     def set_read
