@@ -6,6 +6,7 @@ class ReadsController < ApplicationController
   def create
     @read = Read.new(read_params)
     add_to_first_layer(@read)
+    calculate_superior_layers
     readAckObject = OpenStruct.new
     readAckObject.objectType = "ReadAck"
     readAckObject.response = "success"
@@ -16,8 +17,20 @@ class ReadsController < ApplicationController
 
   # GET /reads
   def query
-    puts 'query'
-  end 
+    topLeftLatitude = params['topLeftLatitude']
+    topLeftLongitude = params['topLeftLongitude']
+    bottomRightLatitude = params['bottomRightLatitude']
+    bottomRightLongitude = params['bottomRightLongitude']
+    layerId = params['layerId']
+
+    selectedLayer = Layer.find_by(id: layerId)
+    selectedReads = selectedLayer.reads.where("latitude <= #{topLeftLatitude} AND latitude >= #{bottomRightLatitude} AND longitude >= #{topLeftLongitude} AND longitude <= #{bottomRightLongitude}")
+    puts selectedReads
+    puts selectedReads.count
+    respond_to do |format|
+      format.json { render(json: selectedReads) }
+    end
+ end 
 
 
   private
@@ -41,6 +54,9 @@ class ReadsController < ApplicationController
     end
 
   def calculate_superior_layers
+    Layer.all.where("id != 1").each do |layer|
+      puts layer.id
+    end
   end
 
 
