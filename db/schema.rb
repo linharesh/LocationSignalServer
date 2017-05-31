@@ -18,6 +18,7 @@ ActiveRecord::Schema.define(version: 20170303035841) do
   create_table "layers", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.float "precision_coeficient", null: false
   end
 
   create_table "reads", force: :cascade do |t|
