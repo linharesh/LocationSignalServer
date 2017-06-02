@@ -1,18 +1,19 @@
 class Layer < ApplicationRecord
     has_many :reads
 
-    def addReadToAllLayers(pRead)
-        firstLayer = Layer.find_by(id: 1)
-        firstLayer.applyPrecisionCoeficient(pRead)
-        Layer.where('id != 1').each |layer| do
-            layer.calculateLayer
+    def self.add_read_to_all_layers(pRead)
+        Layer.find_by(id: 1).add_read_to_this_layer(pRead)
+        Layer.where('id != 1').each do |layer| 
+            layer.calculate_layer
         end
     end
 
-    def addReadToThisLayer(pRead) 
+    def add_read_to_this_layer(pRead) 
         firstRead = self.reads.find_by(latitude: pRead.latitude, longitude: pRead.longitude)
-        newRead = Read.new(id: read.id, latitude: read.latitude, signalStrength: read.signalStrength, carrierName: read.carrierName)
-        applyPrecisionCoeficient(read)
+        puts 'chegou aqui'
+        puts ::Read.all
+        newRead = ::Read.new(latitude: pRead.latitude, longitude: pRead.longitude, signalStrength: pRead.signalStrength, carrierName: pRead.carrierName)
+        newRead = applyPrecisionCoeficient(newRead)
 
         if (firstRead.nil?)
             puts "Adicionando nova read na layer #{self.id}"
@@ -35,24 +36,38 @@ class Layer < ApplicationRecord
         return pRead
     end
 
-    private def calculateLayer
-        firstLayerReads = firstLayer.reads
+    def calculate_layer
+        firstLayerReads = Layer.find_by(id: 1).reads
         currentLayerReads = []
-        firstLayer
-
         Layer.find_by(id: 1).reads do |flRead|
-            read = Read.new(id: flRead.id, latitude: flRead.latitude, signalStrength: flRead.signalStrength, carrierName: flRead.carrierName)
+            read = ::Read.new(latitude: flRead.latitude, signalStrength: flRead.signalStrength, carrierName: flRead.carrierName)
             currentLayerReads.push(self.applyPrecisionCoeficient(read))
         end
-
-        currentLayerReads = self.mergeDuplicatedReads(currentLayerReads)
-        #parei aqui
-        self.reads = currentLayerReads
-
+        self.reads = self.merge_duplicate_reads(currentLayerReads)
     end
 
-    private def mergeDuplicatedReads
-    #todo: implementar método
+    def merge_duplicate_reads(reads)
+        returning_reads = []
+        reads.each do |read|
+            duplicates = reads.find_by(latitude: read.latitude, longitude: read.longitude)
+            if duplicates.count == 1
+                returning_reads.push(read)
+            else
+                returning_reads.push(merge_duplicate_read(duplicates))
+            end
+        end
     end
+
+    def merge_duplicate_read(duplicates)
+        sum = 0
+        duplicates.each do |dpl|
+            sum = sum + dpl.signalStrength
+        end
+        avg = Float(sum/duplicates.count)
+        first = duplicates.first
+        read = ::Read.new(latitude: first.latitude, longitude: first.longitude, signalStrength: avg, carrierName: first.carrierName)
+        return read
+    end
+
 
 end
