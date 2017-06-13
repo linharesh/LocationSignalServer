@@ -5,6 +5,7 @@ class CreateReads < ActiveRecord::Migration[5.0]
       t.float :longitude
       t.float :signalStrength
       t.string :carrierName
+      t.datetime :date
 
       t.timestamps
     end

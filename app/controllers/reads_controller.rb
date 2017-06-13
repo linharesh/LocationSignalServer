@@ -5,6 +5,7 @@ class ReadsController < ApplicationController
   # POST /reads.json
   def create
     @read = Read.new(read_params)
+    @read.date = read_params['date'].to_time
     Layer.add_read_to_all_layers(@read)
     readAckObject = OpenStruct.new
     readAckObject.objectType = "ReadAck"
@@ -16,9 +17,6 @@ class ReadsController < ApplicationController
 
   # GET /reads
   def query
-    puts '$'
-    puts params
-
     topLeftLatitude = params['topLeftLatitude']
     topLeftLongitude = params['topLeftLongitude']
     bottomRightLatitude = params['bottomRightLatitude']
@@ -63,7 +61,7 @@ class ReadsController < ApplicationController
 
 
     def read_params
-      params.require(:read).permit(:latitude, :longitude, :signalStrength, :carrierName)
+      params.require(:read).permit(:latitude, :longitude, :signalStrength, :carrierName, :date)
     end
 
 end
