@@ -4,15 +4,28 @@ class ReadsController < ApplicationController
   # POST /reads
   # POST /reads.json
   def create
-    @read = Read.new(read_params)
-    @read.date = read_params['date'].to_time
-    Layer.add_read_to_all_layers(@read)
+    reads_arr = []
+    params["count"].times do |i|
+      read_params = params[i.to_s]["read"]
+      r = Read.new()
+      r.latitude = read_params["latitude"]
+      r.longitude = read_params["longitude"]
+      r.signalStrength = read_params["signalStrength"]
+      r.carrierName = read_params["carrierName"]
+      r.date = read_params["date"].to_time
+      reads_arr.push(r)
+    end
+
     readAckObject = OpenStruct.new
     readAckObject.objectType = "ReadAck"
     readAckObject.response = "success"
     respond_to do |format|
       format.json { render(json: readAckObject) }
     end
+    reads_arr.each do |r|
+      r.save
+      Layer.add_read_to_all_layers(r)  
+    end    
   end
 
   # GET /reads
@@ -60,8 +73,8 @@ class ReadsController < ApplicationController
   end
 
 
-    def read_params
-      params.require(:read).permit(:latitude, :longitude, :signalStrength, :carrierName, :date)
-    end
+   # def read_params
+   #   params.require(:read).permit(:latitude, :longitude, :signalStrength, :carrierName, :date)
+   # end
 
 end
