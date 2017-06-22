@@ -16,9 +16,9 @@ ActiveRecord::Schema.define(version: 20170303035841) do
   enable_extension "plpgsql"
 
   create_table "layers", force: :cascade do |t|
+    t.float    "precision_coeficient"
     t.datetime "created_at",           null: false
     t.datetime "updated_at",           null: false
-    t.float    "precision_coeficient", null: false
   end
 
   create_table "reads", force: :cascade do |t|

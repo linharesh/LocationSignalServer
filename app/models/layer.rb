@@ -1,28 +1,18 @@
 class Layer < ApplicationRecord
     has_many :reads
 
-    def self.add_read_to_all_layers(pRead)
-        Layer.find_by(id: 1).add_read_to_this_layer(pRead)
-        Layer.where('id != 1').each do |layer| 
+    def self.add_read_to_all_layers()
+        Layer.where('id != 1').each do |layer|      
             layer.calculate_layer
         end
+
     end
 
     def add_read_to_this_layer(pRead) 
-        firstRead = self.reads.find_by(latitude: pRead.latitude, longitude: pRead.longitude)
-        puts ::Read.all
-        newRead = ::Read.create(latitude: pRead.latitude, longitude: pRead.longitude, signalStrength: pRead.signalStrength, carrierName: pRead.carrierName)
+        newRead = ::Read.new(latitude: pRead.latitude, longitude: pRead.longitude, signalStrength: pRead.signalStrength, carrierName: pRead.carrierName)
         newRead = apply_precision_coeficient(newRead)
-
-        if (firstRead.nil?)
-            newRead.layer = Layer.find_by(id: 1)
-            newRead.save
-        else
-            alpha = 1
-            newSignalStrengthValue = (firstRead.signalStrength*1-alpha) + (pRead.signalStrength*alpha)
-            firstRead.update(signalStrength: newSignalStrengthValue)
-        end
-
+        newRead.layer = Layer.find_by(id: 1)
+        newRead.save
     end 
 
     def apply_precision_coeficient(pRead)
@@ -35,56 +25,35 @@ class Layer < ApplicationRecord
 
     def calculate_layer
         firstLayerReads = Layer.find_by(id: 1).reads
-        
-        puts 'firstLayerReads'
-        puts firstLayerReads
-
         currentLayerReads = []
         firstLayerReads.each do |flRead|
-            puts 'flRead'
-            puts flRead
-            read = ::Read.create(latitude: flRead.latitude, longitude: flRead.longitude, signalStrength: flRead.signalStrength, carrierName: flRead.carrierName)
-            currentLayerReads.push(self.apply_precision_coeficient(read))
-        end
-        puts '$'
-        puts currentLayerReads
-        puts '$'
-        
-        self.reads = self.merge_duplicate_reads(currentLayerReads)
-    end
-
-    def merge_duplicate_reads(reads)
-        returning_reads = []
-        reads.each do |read|
-            duplicates = find_duplicates(read, reads)
-            if duplicates.count == 1
-                returning_reads.push(read)
+            read = ::Read.new(latitude: flRead.latitude, longitude: flRead.longitude, signalStrength: flRead.signalStrength, carrierName: flRead.carrierName)
+            read = apply_precision_coeficient(read)
+            index = contains(read, currentLayerReads) 
+            if (index == -1)
+                currentLayerReads.push(read)
             else
-                returning_reads.push(merge_duplicate_read(duplicates))
+                currentLayerReads[index] = consolidate(read, currentLayerReads[index])
             end
+            
+        end
+        currentLayerReads.each do |r|
+            r.layer_id = self.id
+            r.save
         end
     end
 
-    def find_duplicates(current, readsArr)
-        duplicates = []
-        readsArr.each do |read|
-            if (current.latitude == read.latitude && current.longitude == read.longitude)
-                duplicates.push(read)
-            end
+    def contains(read, readsArr)
+        readsArr.each do |r|
+            return readsArr.index(r) if (r.latitude == read.latitude && r.longitude == read.longitude)
         end
-        return duplicates    
+        return -1
     end
 
-    def merge_duplicate_read(duplicates)
-        sum = 0
-        duplicates.each do |dpl|
-            sum = sum + dpl.signalStrength
-        end
-        avg = Float(sum/duplicates.count)
-        first = duplicates.first
-        read = ::Read.new(latitude: first.latitude, longitude: first.longitude, signalStrength: avg, carrierName: first.carrierName)
-        return read
+    def consolidate(first_read, second_read)
+        avg = Float( (first_read.signalStrength + second_read.signalStrength) / 2)
+        first_read.signalStrength = avg
+        return first_read
     end
-
 
 end
