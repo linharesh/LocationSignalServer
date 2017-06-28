@@ -19,8 +19,9 @@ class ReadsController < ApplicationController
       signalStrength = read_params["signalStrength"]
       carrierName = read_params["carrierName"]
       date = read_params["date"].to_time
-      r = Read.create(latitude: latitude, longitude: longitude, signalStrength: signalStrength, carrierName: carrierName, date: date, layer_id: 1) 
+      Layer.find_by(id: 1).add_read_to_this_layer(Read.new(latitude: latitude, longitude: longitude, signalStrength: signalStrength, carrierName: carrierName, date: date))
     end
+
 
     Layer.where('id != 1').each do |layer|      
             layer.calculate_layer

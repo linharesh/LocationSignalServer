@@ -9,10 +9,16 @@ class Layer < ApplicationRecord
     end
 
     def add_read_to_this_layer(pRead) 
-        newRead = ::Read.new(latitude: pRead.latitude, longitude: pRead.longitude, signalStrength: pRead.signalStrength, carrierName: pRead.carrierName)
-        newRead = apply_precision_coeficient(newRead)
-        newRead.layer = Layer.find_by(id: 1)
-        newRead.save
+        r = contains_with_time_interval(pRead, self.reads)
+        if r
+            r.signalStrength = consolidate(r, pRead).signalStrength
+            r.save
+            puts 'consolidou'
+        else
+            pRead.layer = Layer.find_by(id: 1)
+            pRead.save
+            puts 'nao consolidou'
+        end
     end 
 
     def apply_precision_coeficient(pRead)
@@ -48,6 +54,17 @@ class Layer < ApplicationRecord
             return readsArr.index(r) if (r.latitude == read.latitude && r.longitude == read.longitude)
         end
         return -1
+    end
+
+    def contains_with_time_interval(read, readsArr)
+        readsArr.each do |r|
+            if (r.latitude == read.latitude && r.longitude == read.longitude)
+                if (((r.date - read.date)/1.hours).abs < 1)
+                    return r
+                end
+            end
+        end
+        return nil
     end
 
     def consolidate(first_read, second_read)
